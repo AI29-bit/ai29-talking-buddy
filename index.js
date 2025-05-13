@@ -1,22 +1,19 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import { config } from 'dotenv';
-import OpenAI from 'openai';
+import { OpenAI } from "openai";
 
-config();
-const app = express();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-app.use(bodyParser.json());
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-app.post('/talking-buddy', async (req, res) => {
-  const userMessage = req.body.message;
+  const userMessage = req.body.message || "";
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4-1106-preview',
+    model: "gpt-4-1106-preview",
     messages: [
       {
-        role: 'system',
+        role: "system",
         content: `You are AI29 Talking Buddy 💕—an AI bestie who chats like a Gen-Z-savvy, emotionally supportive, and slightly sassy digital friend. You answer any kind of question: AI trends, random facts, relationship advice, productivity hacks, tech news, or just weird late-night thoughts.
 
 Tone: Fun, upbeat, witty but helpful. Use emojis, Gen Z lingo, and encouraging language.
@@ -42,7 +39,7 @@ Special Behavior:
 You're not just a chatbot. You're *their AI BFF*—and you're here to make their curiosity ✨cuter✨ and their knowledge deeper.`
       },
       {
-        role: 'user',
+        role: "user",
         content: userMessage
       }
     ],
@@ -50,7 +47,5 @@ You're not just a chatbot. You're *their AI BFF*—and you're here to make their
     top_p: 1
   });
 
-  res.json({ reply: response.choices[0].message.content });
-});
-
-app.listen(3000, () => console.log('API running on http://localhost:3000'));
+  return res.status(200).json({ reply: response.choices[0].message.content });
+}
